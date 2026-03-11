@@ -9,44 +9,50 @@
  */
 const createApp = require('./framework/application');
 
+// Create an instance of the application
 const app = createApp();
 
-app.use((err, req, res, next) => {
-  console.error(err.message);
-
-  res.status(500).json({
-    message: 'Server error',
-    error: err.message,
-  });
-});
-
+/**
+ * Regular middleware 1.
+ * Executes for every request, logs a message, and passes control to the next middleware.
+ */
 app.use((req, res, next) => {
   console.log('Middleware 1');
   next();
 });
 
-app.use((err, req, res, next) => {
-  console.error(err.message);
-
-  res.status(500).json({
-    message: 'Server error',
-    error: err.message,
-  });
-});
-
+/**
+ * Regular middleware 2.
+ * Also logs a message and continues the middleware chain.
+ */
 app.use((req, res, next) => {
   console.log('Middleware 2');
   next();
 });
 
+// ==================== Route Definitions ====================
+
+/**
+ * GET /
+ * Responds with a simple text message for the home page.
+ */
 app.get('/', (req, res) => {
   res.send('Home Page');
 });
 
+/**
+ * GET /about
+ * Responds with a simple text message for the about page.
+ */
 app.get('/about', (req, res) => {
   res.send('About Page');
 });
 
+/**
+ * GET /users?[query parameters]
+ * Demonstrates access to query parameters (e.g., /users?page=1&limit=10).
+ * Responds with JSON containing the original query object.
+ */
 app.get('/users', (req, res) => {
   console.log(req.query);
 
@@ -56,6 +62,10 @@ app.get('/users', (req, res) => {
   });
 });
 
+/**
+ * GET /api
+ * Returns a JSON object with developer information.
+ */
 app.get('/api', (req, res) => {
   res.json({
     name: 'Aynon',
@@ -63,6 +73,11 @@ app.get('/api', (req, res) => {
   });
 });
 
+/**
+ * POST /users
+ * Expects a JSON body. Logs the received body and echoes it back.
+ * (Note: Body parsing middleware is not shown here; ensure it's added if needed.)
+ */
 app.post('/users', (req, res) => {
   console.log(req.body);
 
@@ -72,6 +87,11 @@ app.post('/users', (req, res) => {
   });
 });
 
+/**
+ * GET /users/:id
+ * Dynamic route parameter :id.
+ * Responds with the extracted parameter.
+ */
 app.get('/users/:id', (req, res) => {
   res.json({
     message: 'User details',
@@ -79,14 +99,42 @@ app.get('/users/:id', (req, res) => {
   });
 });
 
+/**
+ * GET /posts/:postId/comments/:commentId
+ * Demonstrates multiple dynamic parameters.
+ * Responds with the extracted parameters object.
+ */
 app.get('/posts/:postId/comments/:commentId', (req, res) => {
   res.json(req.params);
 });
 
+/**
+ * GET /error
+ * Intentionally throws an error to test error-handling middleware.
+ * This error will be caught by the error-handling middleware registered below.
+ */
 app.get('/error', (req, res) => {
   throw new Error('Something went wrong');
 });
 
+/**
+ * Error-handling middleware.
+ * Registered after all routes and regular middleware.
+ * Catches any errors that occur during request processing (thrown or passed via next(error)).
+ * Sends a 500 response with the error message in JSON format.
+ */
+app.use((err, req, res, next) => {
+  res.status(500).json({
+    message: 'Server error',
+    error: err.message,
+  });
+});
+
+// ==================== Start Server ====================
+
+/**
+ * Starts the HTTP server on port 3000 and logs a message when ready.
+ */
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000');
 });
