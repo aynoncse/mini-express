@@ -43,6 +43,15 @@ app.get('/api', (req, res) => {
   });
 });
 
+app.post('/users', (req, res) => {
+  console.log(req.body);
+
+  res.json({
+    message: 'User received',
+    body: req.body,
+  });
+});
+
 app.get('/error', (req, res) => {
   res.status(404).send('Not Found');
 });

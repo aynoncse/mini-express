@@ -8,12 +8,35 @@
  *
  * @param {http.IncomingMessage} req - The original request object.
  */
-
-function enhanceRequest(req) {
+function enhanceRequest(req, callback) {
   const url = new URL(req.url, `http://${req.headers.host}`);
+
   req.path = url.pathname;
+
   req.query = Object.fromEntries(url.searchParams.entries());
-  return req;
+
+  // parse body
+  let chunks = [];
+
+  req.on('data', (chunk) => {
+    chunks.push(chunk);
+  });
+
+  req.on('end', () => {
+    if (chunks.length > 0) {
+      const raw = Buffer.concat(chunks).toString();
+
+      try {
+        req.body = JSON.parse(raw);
+      } catch {
+        req.body = raw;
+      }
+    } else {
+      req.body = {};
+    }
+
+    callback();
+  });
 }
 
 module.exports = enhanceRequest;

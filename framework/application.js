@@ -17,26 +17,30 @@ function createApp() {
 
   function app(req, res) {
     // Add helpers to req and res
-    enhanceRequest(req);
     enhanceResponse(res);
+    enhanceRequest(req, () => {
+      let i = 0;
+      function next() {
+        const middleware = middlewares[i++];
 
-    let i = 0;
-    function next() {
-      const middleware = middlewares[i++];
-
-      if (middleware) {
-        middleware(req, res, next);
-      } else {
-        router.handle(req, res);
+        if (middleware) {
+          middleware(req, res, next);
+        } else {
+          router.handle(req, res);
+        }
       }
-    }
 
-    next();
+      next();
+    });
   }
 
   app.use = (middleware) => middlewares.push(middleware);
 
   app.get = (path, handler) => router.register('GET', path, handler);
+
+  app.post = function (path, handler) {
+    router.register('POST', path, handler);
+  };
 
   app.listen = (port, callback) => {
     const server = http.createServer(app);
