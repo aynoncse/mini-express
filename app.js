@@ -5,21 +5,41 @@
  * @author Aynon Bhuiyan <aynoncse@gmail.com>
  * @created 2026-03-11
  */
-
 const createApp = require('./framework/application');
 
 const app = createApp();
 
+app.use((req, res, next) => {
+  console.log('Middleware 1');
+  next();
+});
+
+app.use((req, res, next) => {
+  console.log('Middleware 2');
+  next();
+});
+
 app.get('/', (req, res) => {
-  res.end('Home Page');
+  res.send('Home Page');
 });
 
 app.get('/about', (req, res) => {
-  res.end('About Page');
+  res.send('About Page');
 });
 
 app.get('/users', (req, res) => {
-  res.end('Users Page');
+  res.send('Users Page');
+});
+
+app.get('/api', (req, res) => {
+  res.json({
+    name: 'Aynon',
+    role: 'Backend Developer',
+  });
+});
+
+app.get('/error', (req, res) => {
+  res.status(404).send('Not Found');
 });
 
 app.listen(3000, () => {
