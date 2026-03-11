@@ -21,10 +21,10 @@ class Router {
   }
 
   handle(req, res) {
-    const { method, url } = req;
+    const { method, path } = req;
 
     const route = this.routes.find(
-      (route) => route.method === method && route.path === url,
+      (route) => route.method === method && route.path === path,
     );
 
     if (route) {

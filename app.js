@@ -28,7 +28,12 @@ app.get('/about', (req, res) => {
 });
 
 app.get('/users', (req, res) => {
-  res.send('Users Page');
+  console.log(req.query);
+
+  res.json({
+    message: 'Users endpoint',
+    query: req.query,
+  });
 });
 
 app.get('/api', (req, res) => {

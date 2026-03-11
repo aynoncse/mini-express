@@ -9,13 +9,16 @@
 const http = require('http');
 const Router = require('./router');
 const enhanceResponse = require('./response');
+const enhanceRequest = require('./request');
 
 function createApp() {
   const router = new Router();
   const middlewares = [];
 
   function app(req, res) {
-    enhanceResponse(res); // Add helpers
+    // Add helpers to req and res
+    enhanceRequest(req);
+    enhanceResponse(res);
 
     let i = 0;
     function next() {
