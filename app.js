@@ -1,5 +1,7 @@
 /**
  * Main application entry point.
+ * This file demonstrates the usage of the custom framework (createApp)
+ * by setting up middleware, defining routes, and starting the server.
  *
  * @module app
  * @author Aynon Bhuiyan <aynoncse@gmail.com>
@@ -9,9 +11,27 @@ const createApp = require('./framework/application');
 
 const app = createApp();
 
+app.use((err, req, res, next) => {
+  console.error(err.message);
+
+  res.status(500).json({
+    message: 'Server error',
+    error: err.message,
+  });
+});
+
 app.use((req, res, next) => {
   console.log('Middleware 1');
   next();
+});
+
+app.use((err, req, res, next) => {
+  console.error(err.message);
+
+  res.status(500).json({
+    message: 'Server error',
+    error: err.message,
+  });
 });
 
 app.use((req, res, next) => {
@@ -52,8 +72,19 @@ app.post('/users', (req, res) => {
   });
 });
 
+app.get('/users/:id', (req, res) => {
+  res.json({
+    message: 'User details',
+    params: req.params,
+  });
+});
+
+app.get('/posts/:postId/comments/:commentId', (req, res) => {
+  res.json(req.params);
+});
+
 app.get('/error', (req, res) => {
-  res.status(404).send('Not Found');
+  throw new Error('Something went wrong');
 });
 
 app.listen(3000, () => {

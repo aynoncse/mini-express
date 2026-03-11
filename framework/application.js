@@ -1,6 +1,6 @@
 /**
  * Express-like application factory.
- * Creates an HTTP server.
+ * Creates an HTTP server with middleware and routing support.
  *
  * @module createApp
  * @author Aynon Bhuiyan <aynoncse@gmail.com>
