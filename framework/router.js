@@ -1,53 +1,100 @@
 /**
- * Enhances a Node.js HTTP response object with additional utility methods.
- * This function mutates the provided response object by attaching `send`, `json`, and `status` methods.
+ * A simple router class for handling HTTP requests.
+ * It allows registering routes with specific HTTP methods and paths,
+ * and matches incoming requests to the appropriate handler.
  *
- * @module enhanceResponse
+ * @module Router
  * @author Aynon Bhuiyan <aynoncse@gmail.com>
  * @created 2026-03-11
- *
- * @param {http.ServerResponse} res - The original response object to enhance.
- * @returns {void} The function modifies the object in place and does not return anything.
  */
-function enhanceResponse(res) {
+
+class Router {
+  constructor() {
+    // Array to store all registered routes
+    this.routes = [];
+  }
+
   /**
-   * Sends a response. If the provided data is an object, it sets the Content-Type header to
-   * 'application/json', stringifies the data, and ends the response.
-   * For non‑object data, it ends the response with the data as plain text.
-   *
-   * @param {any} data - The data to send. Objects are stringified, others are sent as text.
+   * Registers a new route.
+   * @param {string} method - HTTP method (e.g., 'GET', 'POST')
+   * @param {string} path - URL path (can include parameters prefixed with ':')
+   * @param {function} handler - Callback function to handle the request
    */
-  res.send = (data) => {
-    if (typeof data === 'object') {
-      res.setHeader('Content-Type', 'application/json');
-      data = JSON.stringify(data);
+  register(method, path, handler) {
+    this.routes.push({
+      method,
+      path,
+      handler,
+    });
+  }
+
+  /**
+   * Attempts to match a registered route path against an actual request path.
+   * Supports dynamic route parameters (e.g., '/users/:id').
+   * @param {string} routePath - The registered route path
+   * @param {string} requestPath - The actual request path
+   * @returns {object|null} - An object containing extracted parameters if match succeeds, otherwise null
+   */
+  matchRoute(routePath, requestPath) {
+    // Split both paths into segments
+    const routeParts = routePath.split('/');
+    const requestParts = requestPath.split('/');
+
+    // If segment counts differ, paths cannot match
+    if (routeParts.length !== requestParts.length) {
+      return null;
     }
-    if (data === undefined) data = '';
-    res.end(data);
-  };
+
+    const params = {};
+
+    // Compare each segment
+    for (let i = 0; i < routeParts.length; i++) {
+      const routePart = routeParts[i];
+      const requestPart = requestParts[i];
+
+      // If the route part starts with ':', treat it as a parameter
+      if (routePart.startsWith(':')) {
+        const paramName = routePart.slice(1); // Remove the ':'
+        params[paramName] = requestPart; // Store the actual value
+      } else if (routePart !== requestPart) {
+        // Static segments must match exactly, otherwise fail
+        return null;
+      }
+    }
+
+    // Return the collected parameters on successful match
+    return params;
+  }
 
   /**
-   * Sends a JSON response. Sets the Content-Type header to 'application/json',
-   * stringifies the provided data, and ends the response.
-   *
-   * @param {any} data - The data to be JSON‑encoded and sent.
+   * Handles an incoming HTTP request by finding and executing the matching route handler.
+   * @param {http.IncomingMessage} req - The request object
+   * @param {http.ServerResponse} res - The response object
    */
-  res.json = (data) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(data));
-  };
+  handle(req, res) {
+    const { method, path } = req;
 
-  /**
-   * Sets the HTTP status code for the response and returns the response object itself
-   * to allow method chaining (e.g., `res.status(404).send('Not Found')`).
-   *
-   * @param {number} code - The HTTP status code to set.
-   * @returns {http.ServerResponse} The enhanced response object (for chaining).
-   */
-  res.status = (code) => {
-    res.statusCode = code;
-    return res;
-  };
+    // Iterate through registered routes
+    for (const route of this.routes) {
+      // Skip routes with a different HTTP method
+      if (route.method !== method) continue;
+
+      // Attempt to match the path
+      const params = this.matchRoute(route.path, path);
+
+      if (params) {
+        // If match succeeds, attach parameters to the request object
+        req.params = params;
+        // Execute the route handler
+        route.handler(req, res);
+        return; // Stop processing after first match
+      }
+    }
+
+    // No matching route found; send a 404 response
+    res.writeHead(404);
+    res.end('Route not found');
+  }
 }
 
-module.exports = enhanceResponse;
+module.exports = Router;
