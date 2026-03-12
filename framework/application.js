@@ -10,6 +10,8 @@ const http = require('http');
 const Router = require('./router');
 const enhanceResponse = require('./response');
 const enhanceRequest = require('./request');
+const staticMiddleware = require('./static');
+
 /**
  * Creates an Express-like application with middleware and routing support.
  * @returns {function} The app request handler with attached methods (.use, .get, .post, .listen)
@@ -135,6 +137,15 @@ function createApp() {
    */
   app.post = function (path, handler) {
     router.register('POST', path, handler);
+  };
+
+  app.static = function (directory) {
+    const middleware = staticMiddleware(directory);
+
+    middlewares.push({
+      path: '/',
+      handler: middleware,
+    });
   };
 
   /**

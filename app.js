@@ -15,6 +15,8 @@ const usersRouter = require('./routes/users');
 // Create an instance of the application
 const app = createApp();
 
+app.static('./public');
+
 /**
  * Regular middleware 1.
  * Executes for every request, logs a message, and passes control to the next middleware.

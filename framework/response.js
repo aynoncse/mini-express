@@ -18,6 +18,7 @@ function enhanceResponse(res) {
    * @param {any} data - The data to send. Objects are stringified, others are sent as text.
    */
   res.send = (data) => {
+    if (res.headersSent) return;
     if (typeof data === 'object') {
       res.setHeader('Content-Type', 'application/json');
       data = JSON.stringify(data);
@@ -33,6 +34,7 @@ function enhanceResponse(res) {
    * @param {any} data - The data to be JSON‑encoded and sent.
    */
   res.json = (data) => {
+    if (res.headersSent) return;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(data));
   };
