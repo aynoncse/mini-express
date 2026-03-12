@@ -8,6 +8,8 @@
  * @created 2026-03-11
  */
 
+const { log } = require("node:console");
+
 class Router {
   constructor() {
     // Array to store all registered routes
@@ -37,8 +39,8 @@ class Router {
    */
   matchRoute(routePath, requestPath) {
     // Split both paths into segments
-    const routeParts = routePath.split('/');
-    const requestParts = requestPath.split('/');
+  const routeParts = routePath.split('/').filter(Boolean);
+  const requestParts = requestPath.split('/').filter(Boolean);
 
     // If segment counts differ, paths cannot match
     if (routeParts.length !== requestParts.length) {
@@ -72,7 +74,8 @@ class Router {
    * @param {http.ServerResponse} res - The response object
    */
   handle(req, res) {
-    const { method, path } = req;
+    const method = req.method;
+    const path = req.path;
 
     // Iterate through registered routes
     for (const route of this.routes) {

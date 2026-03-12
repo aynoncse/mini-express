@@ -6,7 +6,6 @@
  * @author Aynon Bhuiyan <aynoncse@gmail.com>
  * @created 2026-03-11
  */
-
 const http = require('http');
 const Router = require('./router');
 const enhanceResponse = require('./response');
@@ -60,11 +59,24 @@ function createApp() {
           return res.end('Internal Server Error');
         }
 
-        // No error: invoke the next normal middleware
-        const middleware = middlewares[i++];
+        const layer = middlewares[i++];
 
-        if (middleware) {
-          return middleware(req, res, next);
+        if (layer) {
+          if (req.path.startsWith(layer.path)) {
+            const originalPath = req.path;
+            
+            req.path = req.path.slice(layer.path.length) || '/';
+            
+            const handler = layer.handler;
+
+            handler(req, res, function () {
+              req.path = originalPath;
+              next();
+            });
+
+            return;
+          }
+          return next();
         }
 
         // All normal middlewares executed; hand over to the router
@@ -85,11 +97,27 @@ function createApp() {
    * If the function has arity 4 (err, req, res, next), it is treated as error-handling middleware.
    * @param {function} middleware - The middleware function
    */
-  app.use = function (middleware) {
-    if (middleware.length === 4) {
-      errorMiddlewares.push(middleware);
+  app.use = function (path, middleware) {
+    if (typeof path === 'function') {
+      const fn = path;
+
+      if (fn.length === 4) {
+        errorMiddlewares.push(fn);
+      } else {
+        middlewares.push({
+          path: '/',
+          handler: fn,
+        });
+      }
     } else {
-      middlewares.push(middleware);
+      if (middleware.length === 4) {
+        errorMiddlewares.push(middleware);
+      } else {
+        middlewares.push({
+          path,
+          handler: middleware,
+        });
+      }
     }
   };
 

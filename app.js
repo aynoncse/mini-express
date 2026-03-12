@@ -9,6 +9,9 @@
  */
 const createApp = require('./framework/application');
 
+// Import routes
+const usersRouter = require('./routes/users');
+
 // Create an instance of the application
 const app = createApp();
 
@@ -48,19 +51,7 @@ app.get('/about', (req, res) => {
   res.send('About Page');
 });
 
-/**
- * GET /users?[query parameters]
- * Demonstrates access to query parameters (e.g., /users?page=1&limit=10).
- * Responds with JSON containing the original query object.
- */
-app.get('/users', (req, res) => {
-  console.log(req.query);
-
-  res.json({
-    message: 'Users endpoint',
-    query: req.query,
-  });
-});
+app.use('/users', usersRouter);
 
 /**
  * GET /api
@@ -73,31 +64,6 @@ app.get('/api', (req, res) => {
   });
 });
 
-/**
- * POST /users
- * Expects a JSON body. Logs the received body and echoes it back.
- * (Note: Body parsing middleware is not shown here; ensure it's added if needed.)
- */
-app.post('/users', (req, res) => {
-  console.log(req.body);
-
-  res.json({
-    message: 'User received',
-    body: req.body,
-  });
-});
-
-/**
- * GET /users/:id
- * Dynamic route parameter :id.
- * Responds with the extracted parameter.
- */
-app.get('/users/:id', (req, res) => {
-  res.json({
-    message: 'User details',
-    params: req.params,
-  });
-});
 
 /**
  * GET /posts/:postId/comments/:commentId
